@@ -1,0 +1,21 @@
+sudo: required
+service:
+  - docker
+
+before_install:
+  - docker build -t agumorales/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true agumorales/react-test npm test
+  
+after_succes:
+  - docker build -t agumorales/multi-client ./client
+  - docker build -t agumorales/multi-nginx ./nginx
+  - docker build -t agumorales/multi-server ./server
+  - docker build -t agumorales/multi-worker ./worker
+#Take the imagies to push to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push agumorales/multi-client
+  - docker push agumorales/multi-nginx
+  - docker push agumorales/multi-server
+  - docker push agumorales/multi-worker
